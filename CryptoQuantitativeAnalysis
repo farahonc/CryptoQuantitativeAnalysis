@@ -1,0 +1,32 @@
+# analysis/data_fetch.py
+
+import requests
+import pandas as pd
+
+def fetch_historical_data(symbol, interval, start_time, end_time):
+    base_url = 'https://api.binance.com/api/v3/klines'
+    params = {
+        'symbol': symbol,
+        'interval': interval,
+        'startTime': start_time,
+        'endTime': end_time
+    }
+    response = requests.get(base_url, params=params)
+    data = response.json()
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data, columns=[
+        'timestamp', 'open', 'high', 'low', 'close', 'volume', 
+        'close_time', 'quote_asset_volume', 'number_of_trades', 
+        'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'
+    ])
+    
+    # Convert timestamp to datetime
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df.set_index('timestamp', inplace=True)
+
+    return df[['open', 'high', 'low', 'close', 'volume']]
+
+# Example usage:
+# df = fetch_historical_data('BTCUSDT', '1d', '1622520000000', '1625108400000')
+# print(df.head())
